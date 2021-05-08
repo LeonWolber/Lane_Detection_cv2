@@ -49,26 +49,25 @@ def grab_screen(region=None):
 
 
 def roi(image):
-	#height = image.shape[0]
-	#width = image.shape[1]		
-
-	#vertices = np.array([[(80,477), (310,355),(450, 327), (600,355),(852,470), (540, 446)]])
+	# define region of interest to detect lines
 	vertices = np.array([[(180,430),(390,310),(510,300),(700,430)]])
-
+	# create masks of zeros of size == image.shape
 	mask = np.zeros_like(image)
+	# fill roi on mask with white pixels
 	cv2.fillPoly(mask, vertices, 255)
 	masked_image = cv2.bitwise_and(image, mask)
 	return masked_image
 
 def canny_(image):
+	# detect edges on image
 	gray = cv2.cvtColor(crop_img, cv2.COLOR_RGB2GRAY)
-	blur = cv2.GaussianBlur(gray, (5,5), 0)
+	#blur = cv2.GaussianBlur(gray, (5,5), 0)
 	canny = cv2.Canny(blur, 50, 150)
 	return canny
 
 def display_lines(image, lines):
 	line_image = np.zeros_like(image)
-
+	# iterate over detected lines and display with inbuild cv2 function
 	if lines is not None:
 		for x1, y1, x2, y2  in lines:
 			cv2.line(line_image, (x1,y1), (x2,y2), (255,0,255), 10)
@@ -77,6 +76,7 @@ def display_lines(image, lines):
 
 
 def average_slope_intercept(image, lines):
+	# combine similar lines to ageneral line which will be plotted on image
 	
 	left_fit = []
 	right_fit = []
@@ -106,6 +106,7 @@ def average_slope_intercept(image, lines):
 	return np.array([left_line, right_line])
 
 def make_coordinates(image, line_parameters):
+	# decide how long the displayed lines should be
 	slope, intercept = line_parameters
 	y1 = 490
 	y2 = int(y1*(5.3/8))
@@ -114,18 +115,18 @@ def make_coordinates(image, line_parameters):
 
 	return np.array([x1, y1, x2, y2])
 
-def display_multiple_lines(image, lines):
-	line_image = np.zeros_like(image)
-
-	if lines is not None:
-		for line  in lines:
-			for x1, y1, x2, y2 in line:
-				cv2.line(line_image, (x1,y1), (x2,y2), (0,0,255), 10)
-
-	return line_image
+#def display_multiple_lines(image, lines):
+#	line_image = np.zeros_like(image)
+#
+#	if lines is not None:
+#		for line  in lines:
+#			for x1, y1, x2, y2 in line:
+#				cv2.line(line_image, (x1,y1), (x2,y2), (0,0,255), 10)
+#
+#	return line_image
 
 def load_model():
-
+	# load object detection model to detect cars and trucks
 	model = cv2.dnn_DetectionModel(FROZEN_MODEL, CONFIG_FILE)
 	model.setInputSize(320,320)
 	model.setInputScale(1.0/127.5)
@@ -145,6 +146,7 @@ def get_classes():
 
 def detect_objects(labels, img):
 	class_index, confidence, bbox = model.detect(img, confThreshold = 0.45)
+	# only detect classes that represent cars, trucks, busses etc.
 	if class_index[0] in [3,4,6,8]:
 
 		for ind, conf, boxes in zip(class_index.flatten(), confidence.flatten(), bbox):
@@ -160,6 +162,7 @@ def detect_objects(labels, img):
 	return img
 
 def roi_object_detection(image):
+	# seperate region of interest for object detection only
 	img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	
 	vertices = np.array([[(0, 300),(0, 450),(920,450),(920,300)]])
@@ -195,28 +198,19 @@ if __name__ == '__main__':
 		screen = grab_screen(region=(0,40,1920,1080))
 		crop_img = screen[130:640, 40:920]
 
-		
-		
 		lane_image = np.copy(crop_img)
 		roi_objects = roi_object_detection(lane_image)
-		# plt.imshow(roi_objects)
-		# plt.show()
+
+
 
 
 
 		canny = canny_(lane_image)
 		region_img = roi(canny)
 
-		lines = cv2.HoughLinesP(region_img,
-											 rho=6,
-											 theta = np.pi/180,
-											 threshold = 100,
-											 minLineLength=0.1,
-											 maxLineGap=75)
-		
-		
+		lines = cv2.HoughLinesP(region_img, rho=6, theta = np.pi/180, threshold = 100,
+			minLineLength=0.1, maxLineGap=75)
 		try:
-			
 			averaged_lines = average_slope_intercept(lane_image, lines)
 			line_image =  display_lines(lane_image, averaged_lines)
 
@@ -230,13 +224,9 @@ if __name__ == '__main__':
 			# cv2.imshow("cropped", cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
 		except:
 			try:
-			
-		
-				
 				cv2.imshow("cropped", cv2.cvtColor(combo_image, cv2.COLOR_BGR2RGB))
 			except:
 				cv2.imshow("cropped", canny)
-		# 	pass
 
 		if cv2.waitKey(25) & 0xFF == ord('q'):
 			cv2.destroyAllWindows()
@@ -244,4 +234,4 @@ if __name__ == '__main__':
 			break
 
 
-	
+
