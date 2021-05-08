@@ -2,7 +2,7 @@
 In this project I am working on Object detection and Lane detection for dashcam videos.
 
 __Applying HoughLines and certain transformations led to the following lane detection:__
-<img src="https://raw.githubusercontent.com/LeonWolber/Lane_Detection_cv2/master/dashcam_lanes.gif" width="600px">
+<img src="https://raw.githubusercontent.com/LeonWolber/Lane_Detection_cv2/master/dashcam.gif" width="600px">
 
 __Afterwards, I started to incorporate the object detection:__
 
