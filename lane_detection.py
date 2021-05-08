@@ -50,7 +50,7 @@ def grab_screen(region=None):
 
 def roi(image):
 	# define region of interest to detect lines
-	vertices = np.array([[(180,430),(390,310),(510,300),(700,430)]])
+	vertices = np.array([[(180,430),(390,325),(510,325),(700,430)]])
 	# create masks of zeros of size == image.shape
 	mask = np.zeros_like(image)
 	# fill roi on mask with white pixels
@@ -62,7 +62,7 @@ def canny_(image):
 	# detect edges on image
 	gray = cv2.cvtColor(crop_img, cv2.COLOR_RGB2GRAY)
 	#blur = cv2.GaussianBlur(gray, (5,5), 0)
-	canny = cv2.Canny(blur, 50, 150)
+	canny = cv2.Canny(gray, 50, 150)
 	return canny
 
 def display_lines(image, lines):
@@ -70,7 +70,7 @@ def display_lines(image, lines):
 	# iterate over detected lines and display with inbuild cv2 function
 	if lines is not None:
 		for x1, y1, x2, y2  in lines:
-			cv2.line(line_image, (x1,y1), (x2,y2), (255,0,255), 10)
+			cv2.line(line_image, (x1,y1), (x2,y2), (0,255,255), 10)
 
 	return line_image
 
@@ -208,7 +208,7 @@ if __name__ == '__main__':
 		canny = canny_(lane_image)
 		region_img = roi(canny)
 
-		lines = cv2.HoughLinesP(region_img, rho=6, theta = np.pi/180, threshold = 100,
+		lines = cv2.HoughLinesP(region_img, rho=4, theta = np.pi/180, threshold = 140,
 			minLineLength=0.1, maxLineGap=75)
 		try:
 			averaged_lines = average_slope_intercept(lane_image, lines)
@@ -218,12 +218,13 @@ if __name__ == '__main__':
 			combo_image = cv2.addWeighted(lane_image, 0.8, line_image, 1,0)
 
 			final_img = cv2.cvtColor(detect_objects(labels = classes, img = lane_image), cv2.COLOR_BGR2RGB)
-			final = cv2.addWeighted(combo_image, 1, final_img, 0.3,0)
+			final = cv2.addWeighted(final, 1, final_img, 0.3,0)
 			#final = increase_brightness(final, value=-60)
 			cv2.imshow("cropped",final)
 			# cv2.imshow("cropped", cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
 		except:
 			try:
+				print('combo_image')
 				cv2.imshow("cropped", cv2.cvtColor(combo_image, cv2.COLOR_BGR2RGB))
 			except:
 				cv2.imshow("cropped", canny)
