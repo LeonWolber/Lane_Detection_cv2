@@ -208,7 +208,7 @@ if __name__ == '__main__':
 		canny = canny_(lane_image)
 		region_img = roi(canny)
 
-		lines = cv2.HoughLinesP(region_img, rho=4, theta = np.pi/180, threshold = 140,
+		lines = cv2.HoughLinesP(region_img, rho=6, theta = np.pi/180, threshold = 110,
 			minLineLength=0.1, maxLineGap=75)
 		try:
 			averaged_lines = average_slope_intercept(lane_image, lines)
